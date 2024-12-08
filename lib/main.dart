@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 // Import your app screens
 import 'package:maincitylink/phone_login.dart';
 import 'package:maincitylink/otp.dart';
+import 'package:maincitylink/profile_screen.dart';
 import 'package:maincitylink/user_detail.dart';
 import 'package:maincitylink/dashboard.dart';
 import 'package:maincitylink/complain.dart';
@@ -33,7 +34,7 @@ class MainCityLinkApp extends StatelessWidget {
         '/complaint_box': (context) => const ComplaintBoxScreen(),
  '/notifications': (context) => const NotificationsScreen(),
 
-        // '/profile': (context) => ProfileScreen(),
+        '/profile': (context) => ProfileScreen(),
         // '/news_feed': (context) => NewsFeedScreen(),
         // '/history': (context) => HistoryScreen(),
       },

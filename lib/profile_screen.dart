@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 class ProfileScreen extends StatefulWidget {
-  final String userId; // Pass user ID to fetch data
-
-  const ProfileScreen({super.key, required this.userId});
+  const ProfileScreen({super.key});
 
   @override
   _ProfileScreenState createState() => _ProfileScreenState();
@@ -16,6 +16,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   String? _name, _surname, _phoneNumber, _profilePictureUrl;
   File? _selectedImage;
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -23,50 +24,86 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _fetchUserData();
   }
 
-  void _fetchUserData() async {
-    DocumentSnapshot userDoc = await FirebaseFirestore.instance
-        .collection('Users')
-        .doc(widget.userId)
-        .get();
+  Future<void> _fetchUserData() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      _showError("User not logged in!");
+      return;
+    }
 
-    setState(() {
-      _name = userDoc['name'];
-      _surname = userDoc['surname'];
-      _phoneNumber = userDoc['phone_number'];
-      _profilePictureUrl = userDoc['profile_picture_url'];
-    });
-  }
-
-  Future<void> _updateProfile() async {
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
-
-      String? newProfilePictureUrl = _profilePictureUrl;
-      if (_selectedImage != null) {
-        // Upload image to Firebase Storage and get the URL
-        // Add your Firebase Storage upload logic here
+    try {
+      final userDoc = await FirebaseFirestore.instance.collection('Users').doc(user.uid).get();
+      if (userDoc.exists) {
+        final data = userDoc.data();
+        setState(() {
+          _name = data?['name'] ?? 'N/A';
+          _surname = data?['surname'] ?? 'N/A';
+          _phoneNumber = data?['phone_number'] ?? 'N/A';
+          _profilePictureUrl = data?['profile_picture_url'];
+          _isLoading = false;
+        });
+      } else {
+        _showError("User data not found!");
       }
-
-      await FirebaseFirestore.instance
-          .collection('Users')
-          .doc(widget.userId)
-          .update({
-        'name': _name,
-        'surname': _surname,
-        'phone_number': _phoneNumber,
-        'profile_picture_url': newProfilePictureUrl,
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Profile updated successfully!")),
-      );
+    } catch (e) {
+      _showError("Failed to fetch user data: $e");
     }
   }
 
-  Future<void> _pickImage() async {
-    final pickedFile =
-        await ImagePicker().pickImage(source: ImageSource.gallery);
+  Future<void> _updateProfile() async {
+    if (!_formKey.currentState!.validate()) return;
 
+    _formKey.currentState!.save();
+    setState(() => _isLoading = true);
+
+    try {
+      String? newProfilePictureUrl = _profilePictureUrl;
+      if (_selectedImage != null) {
+        newProfilePictureUrl = await _uploadImage(_selectedImage!);
+      }
+
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        await FirebaseFirestore.instance.collection('Users').doc(user.uid).update({
+          'name': _name,
+          'surname': _surname,
+          'phone_number': _phoneNumber,
+          'profile_picture_url': newProfilePictureUrl,
+        });
+
+        _showMessage("Profile updated successfully!");
+      }
+    } catch (e) {
+      _showError("Failed to update profile: $e");
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+Future<String> _uploadImage(File image) async {
+  const cloudinaryUrl = "https://api.cloudinary.com/v1_1/dtlmvwa2q/image/upload";
+  const uploadPreset = "unsigned-preset";
+
+  try {
+    final request = http.MultipartRequest('POST', Uri.parse(cloudinaryUrl));
+    request.fields['upload_preset'] = uploadPreset;
+    request.files.add(await http.MultipartFile.fromPath('file', image.path));
+
+    final response = await request.send();
+    if (response.statusCode == 200) {
+      final responseData = await response.stream.bytesToString();
+      final jsonResponse = json.decode(responseData);
+      return jsonResponse['secure_url']; // The URL of the uploaded image
+    } else {
+      throw Exception("Failed to upload image");
+    }
+  } catch (e) {
+    throw Exception("Image upload error: $e");
+  }
+}
+
+  Future<void> _pickImage() async {
+    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       setState(() {
         _selectedImage = File(pickedFile.path);
@@ -74,14 +111,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    setState(() => _isLoading = false);
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Profile")),
-      body: _name == null
-          ? Center(child: CircularProgressIndicator())
+      appBar: AppBar(title: const Text("Profile")),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
           : Padding(
-              padding: EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(16.0),
               child: Form(
                 key: _formKey,
                 child: ListView(
@@ -95,50 +141,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ? FileImage(_selectedImage!)
                               : (_profilePictureUrl != null
                                   ? NetworkImage(_profilePictureUrl!)
-                                  : AssetImage('assets/default_profile.png'))
-                                      as ImageProvider,
-                          child: Icon(Icons.camera_alt, size: 30),
+                                  : const AssetImage('assets/default_profile.jpg')) as ImageProvider,
+                          child: const Icon(Icons.camera_alt, size: 30, color: Colors.white),
                         ),
                       ),
                     ),
-                    SizedBox(height: 20),
+                    const SizedBox(height: 20),
                     TextFormField(
                       initialValue: _name,
-                      decoration: InputDecoration(labelText: 'Name'),
+                      decoration: const InputDecoration(labelText: 'Name'),
                       onSaved: (value) => _name = value,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return "Name is required";
-                        }
-                        return null;
-                      },
+                      validator: (value) =>
+                          value == null || value.isEmpty ? "Name is required" : null,
                     ),
                     TextFormField(
                       initialValue: _surname,
-                      decoration: InputDecoration(labelText: 'Surname'),
+                      decoration: const InputDecoration(labelText: 'Surname'),
                       onSaved: (value) => _surname = value,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return "Surname is required";
-                        }
-                        return null;
-                      },
+                      validator: (value) =>
+                          value == null || value.isEmpty ? "Surname is required" : null,
                     ),
                     TextFormField(
                       initialValue: _phoneNumber,
-                      decoration: InputDecoration(labelText: 'Phone Number'),
+                      decoration: const InputDecoration(labelText: 'Phone Number'),
                       onSaved: (value) => _phoneNumber = value,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return "Phone Number is required";
-                        }
-                        return null;
-                      },
+                      validator: (value) =>
+                          value == null || value.isEmpty ? "Phone number is required" : null,
                     ),
-                    SizedBox(height: 20),
+                    const SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: _updateProfile,
-                      child: Text("Save Changes"),
+                      child: const Text("Save Changes"),
                     ),
                   ],
                 ),
