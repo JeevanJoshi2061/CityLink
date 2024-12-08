@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "705330311056",
+    "project_id": "phonefirebase-ca8ac",
+    "storage_bucket": "phonefirebase-ca8ac.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:705330311056:android:f047d7c197e7f17ba80d15",
+        "android_client_info": {
+          "package_name": "com.example.maincitylink"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCvsBvxlCFyqH6ShqOUTELlbwZ_pjxr9o8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
