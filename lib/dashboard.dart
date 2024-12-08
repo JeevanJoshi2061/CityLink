@@ -110,13 +110,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             Navigator.pushNamed(context, '/complaint_box');
                           },
                         ),
-                        _buildDashboardItem(
-                          title: 'Notifications',
-                          icon: Icons.notifications,
-                          onTap: () {
-                            Navigator.pushNamed(context, '/notifications');
-                          },
-                        ),
+_buildDashboardItem(
+  title: 'Notifications',
+  icon: Icons.notifications,
+  onTap: () {
+    Navigator.pushNamed(context, '/notifications');
+  },
+),
+
                         _buildDashboardItem(
                           title: 'Profile',
                           icon: Icons.person,

@@ -8,6 +8,8 @@ import 'package:maincitylink/user_detail.dart';
 import 'package:maincitylink/dashboard.dart';
 import 'package:maincitylink/complain.dart';
 
+import 'notifications.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
@@ -29,7 +31,8 @@ class MainCityLinkApp extends StatelessWidget {
         '/dashboard': (context) => const DashboardScreen(),
         '/user_detail': (context) => const UserDetailsScreen(),
         '/complaint_box': (context) => const ComplaintBoxScreen(),
-        // '/notifications': (context) => NotificationsScreen(),
+ '/notifications': (context) => const NotificationsScreen(),
+
         // '/profile': (context) => ProfileScreen(),
         // '/news_feed': (context) => NewsFeedScreen(),
         // '/history': (context) => HistoryScreen(),
