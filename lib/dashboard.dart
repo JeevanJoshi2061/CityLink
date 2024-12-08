@@ -71,14 +71,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Dashboard'),
+        automaticallyImplyLeading: false,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await FirebaseAuth.instance.signOut();
-              Navigator.pushReplacementNamed(context, '/login');
-            },
-          ),
+          // IconButton(
+          //   icon: const Icon(Icons.logout),
+          //   onPressed: () async {
+          //     await FirebaseAuth.instance.signOut();
+          //     Navigator.pushReplacementNamed(context, '/login');
+          //   },
+          // ),
         ],
       ),
       body: _userData == null
@@ -142,13 +143,13 @@ Navigator.pushNamed(
   },
 ),
 
-                        _buildDashboardItem(
-                          title: 'Chat',
-                          icon: Icons.chat,
-                          onTap: () {
-                            Navigator.pushNamed(context, '/chat');
-                          },
-                        ),
+                        // _buildDashboardItem(
+                        //   title: 'Chat',
+                        //   icon: Icons.chat,
+                        //   onTap: () {
+                        //     Navigator.pushNamed(context, '/chat');
+                        //   },
+                        // ),
                         _buildDashboardItem(
                           title: 'History',
                           icon: Icons.history,

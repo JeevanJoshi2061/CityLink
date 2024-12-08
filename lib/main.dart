@@ -28,6 +28,7 @@ class MainCityLinkApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       initialRoute: '/splash',
       routes: {
+
         '/splash': (context) => const SplashScreen(),
         '/phone': (context) => const myPhone(),
         '/otp': (context) => const MyOtp(),
