@@ -40,18 +40,25 @@ class MainCityLinkApp extends StatelessWidget {
               userId: FirebaseAuth.instance.currentUser?.uid ?? "",
             ), // Pass userId
       },
-      onGenerateRoute: (settings) {
-        if (settings.name == '/news_feed') {
-          final args = settings.arguments as Map<String, String>;
-          return MaterialPageRoute(
-            builder: (context) => NewsFeedScreen(
-              municipalityId: args['municipalityId']!,
-              languagePreference: args['languagePreference']!,
-            ),
-          );
-        }
-        return null;
-      },
+onGenerateRoute: (settings) {
+  if (settings.name == '/news_feed') {
+    // Safely extract arguments as a Map<String, dynamic>
+    final args = settings.arguments as Map<String, dynamic>;
+    
+    // Ensure the arguments are safe before using them
+    final municipalityId = args['municipalityId'] as String? ?? ''; // Provide a fallback value if needed
+    final languagePreference = args['languagePreference'] as String? ?? 'English'; // Default to 'English'
+
+    return MaterialPageRoute(
+      builder: (context) => NewsFeedScreen(
+        municipalityId: municipalityId,
+        languagePreference: languagePreference,
+      ),
+    );
+  }
+  return null;
+},
+
     );
   }
 }

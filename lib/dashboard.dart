@@ -125,13 +125,23 @@ _buildDashboardItem(
                             Navigator.pushNamed(context, '/profile', arguments: _userData);
                           },
                         ),
-                        _buildDashboardItem(
-                          title: 'News Feed',
-                          icon: Icons.feed,
-                          onTap: () {
-                            Navigator.pushNamed(context, '/news_feed');
-                          },
-                        ),
+_buildDashboardItem(
+  title: 'News Feed',
+  icon: Icons.feed,
+  onTap: () {
+    // Pass the necessary arguments to the NewsFeedScreen
+Navigator.pushNamed(
+  context,
+  '/news_feed',
+  arguments: {
+    'municipalityId': _userData?['mun1'] ?? '', // Ensure this is a String
+    'languagePreference': _userData?['language_preference'] ?? 'English', // Ensure this is a String
+  },
+);
+
+  },
+),
+
                         _buildDashboardItem(
                           title: 'Chat',
                           icon: Icons.chat,
