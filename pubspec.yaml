@@ -50,6 +50,9 @@ dependencies:
   permission_handler: ^11.3.1
   cloudinary: ^1.2.0
   http: ^1.2.2
+  timeago: ^3.7.0
+  video_player: ^2.9.2
+  audioplayers: ^6.1.0
 
 
 

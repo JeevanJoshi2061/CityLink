@@ -9,7 +9,9 @@ import 'package:maincitylink/user_detail.dart';
 import 'package:maincitylink/dashboard.dart';
 import 'package:maincitylink/complain.dart';
 
+import 'news_feed.dart';
 import 'notifications.dart';
+import 'history.dart'; // Import ComplaintHistoryScreen
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,11 +34,23 @@ class MainCityLinkApp extends StatelessWidget {
         '/dashboard': (context) => const DashboardScreen(),
         '/user_detail': (context) => const UserDetailsScreen(),
         '/complaint_box': (context) => const ComplaintBoxScreen(),
- '/notifications': (context) => const NotificationsScreen(),
-
+        '/notifications': (context) => const NotificationsScreen(),
         '/profile': (context) => ProfileScreen(),
-        // '/news_feed': (context) => NewsFeedScreen(),
-        // '/history': (context) => HistoryScreen(),
+        '/history': (context) => ComplaintHistoryScreen(
+              userId: FirebaseAuth.instance.currentUser?.uid ?? "",
+            ), // Pass userId
+      },
+      onGenerateRoute: (settings) {
+        if (settings.name == '/news_feed') {
+          final args = settings.arguments as Map<String, String>;
+          return MaterialPageRoute(
+            builder: (context) => NewsFeedScreen(
+              municipalityId: args['municipalityId']!,
+              languagePreference: args['languagePreference']!,
+            ),
+          );
+        }
+        return null;
       },
     );
   }
@@ -50,10 +64,8 @@ class SplashScreen extends StatelessWidget {
     Future.delayed(const Duration(seconds: 2), () async {
       User? user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        // User is logged in, navigate to Dashboard
         Navigator.pushReplacementNamed(context, '/dashboard');
       } else {
-        // Navigate to Phone Login
         Navigator.pushReplacementNamed(context, '/phone');
       }
     });
